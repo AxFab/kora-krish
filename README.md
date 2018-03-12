@@ -1,5 +1,7 @@
 
-# Smoke Shell
+# Krish
+
+  **Krish** is for _Kora interactive shell_
 
 ## Internals
 
