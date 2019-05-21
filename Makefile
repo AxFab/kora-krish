@@ -17,185 +17,46 @@
 #  This makefile is more or less generic.
 #  The configuration is on `sources.mk`.
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-S := @
-V := $(shell [ -z $(VERBOSE) ] && echo @)
-Q := $(shell [ -z $(QUIET) ] && echo @ || echo @true)
-
-all: libs utils
-
-# P L A T F O R M   I N F O R M A T I O N -=-=-=-=-=-=-=-
-host ?= x86_64-pc-linux-gnu
-host_arch := $(word 1,$(subst -, ,$(host)))
-host_vendor := $(word 2,$(subst -, ,$(host)))
-host_os := $(patsubst $(host_arch)-$(host_vendor)-%,%,$(host))
-
-target ?= x86_64-pc-linux-gnu
-target_arch := $(word 1,$(subst -, ,$(target)))
-target_vendor := $(word 2,$(subst -, ,$(target)))
-target_os := $(patsubst $(target_arch)-$(target_vendor)-%,%,$(target))
-
-# D I R E C T O R I E S -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-prefix ?= /usr/local
 topdir ?= $(shell readlink -f $(dir $(word 1,$(MAKEFILE_LIST))))
 gendir ?= $(shell pwd)
-srcdir := $(topdir)/src
-outdir := ${gendir}/obj
-bindir := ${gendir}/bin
-libdir := ${gendir}/lib
 
-# C O M M A N D S -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-CROSS_COMPILE ?= $(CROSS)
-AS := $(CROSS_COMPILE)as
-AR := $(CROSS_COMPILE)ar
-CC := $(CROSS_COMPILE)gcc 
-CXX := $(CROSS_COMPILE)g++
-LD := $(CROSS_COMPILE)ld
-NM := $(CROSS_COMPILE)nm
+include $(topdir)/make/global.mk
 
-LINUX := $(shell uname -sr)
-DATE := $(shell date '+%d %b %Y')
-GIT := $(shell git --git-dir=$(topdir)/.git log -n1 --pretty='%h')$(shell if [ -n "$(git --git-dir=$(topdir)/.git status --short -uno)"]; then echo '+'; fi)
-GIT_DESC := $(shell git describe)
+all: $(bindir)/krish
 
-# A V O I D   D E P E N D E N C Y -=-=-=-=-=-=-=-=-=-=-=-
-ifeq ($(shell [ -d $(outdir) ] || echo N ),N)
-NODEPS = 1
-endif
-ifeq ($(MAKECMDGOALS),help)
-NODEPS = 1
-endif
-ifeq ($(MAKECMDGOALS),clean)
-NODEPS = 1
-endif
-ifeq ($(MAKECMDGOALS),distclean)
-NODEPS = 1
+DISTO=kora
+
+SRCS-y += $(wildcard $(srcdir)/*.c)
+SRCS-y += $(wildcard $(srcdir)/lgfx/*.c)
+SRCS-y += $(wildcard $(srcdir)/lgfx/$(DISTO)/*.c)
+
+OBJS-y = $(patsubst $(srcdir)/%.c,$(outdir)/%.o,$(SRCS-y))
+
+CFLAGS += -I $(topdir)/lgfx/include
+CFLAGS += -I $(topdir)/lgfx/$(DISTO)
+CFLAGS +=  -ggdb
+CFLAGS += -Dmain=_main
+
+ifeq ($(DISTO),x11)
+LFLAGS += -lpthread -lX11
+else ifeq ($(DISTO),bmp)
+LFLAGS += -lpthread
+else ifeq ($(DISTO),kora)
+CFLAGS += -Dmain=_main
 endif
 
-# D E L I V E R I E S -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-define obj
-  $(patsubst $(srcdir)/%.c,$(outdir)/$(1)/%.$(3),   \
-  $(patsubst $(srcdir)/%.cpp,$(outdir)/$(1)/%.$(3), \
-  $(patsubst $(srcdir)/%.asm,$(outdir)/$(1)/%.$(3), \
-    $(filter-out $($(2)_omit-y),$($(2)_src-y))      \
-  )))
-endef
-
-define libs
-	$(patsubst %,$(libdir)/lib%.$2,$($1))
-endef
-
-define llib
-DEPS += $(call obj,$2,$1,d)
-$1: $(libdir)/lib$1.so
-$(libdir)/lib$1.a: $(call obj,$2,$1,o) $(call libs,$1_SLIBS,a)
-$(libdir)/lib$1.so: $(call obj,$2,$1,o) $(call libs,$1_SLIBS,a) $(call libs,$1_DLIBS,a)
-	$(S) mkdir -p $$(dir $$@)
-	$(Q) echo "    LD  "$$@
-	$(V) $(CC) -shared $($(1)_LFLAGS) -o $$@ $(call obj,$2,$1,o) $(call libs,$1_SLIBS,a) $($(1)_LFLAGS2)
-	$(Q) ls -lh $$@
-	$(Q) size $$@
-endef
-
-define link
-DEPS += $(call obj,$2,$1,d)
-$1: $(bindir)/$1
-$(bindir)/$1: $(call obj,$2,$1,o) $(call libs,$1_SLIBS,a) $(call libs,$1_DLIBS,a)
-	$(S) mkdir -p $$(dir $$@)
-	$(Q) echo "    LD  "$$@
-	$(V) $(CC) $($(1)_LFLAGS) -o $$@ $(call obj,$2,$1,o) $(call libs,$1_SLIBS,a) $($(1)_LFLAGS2)
-	$(Q) ls -lh $$@
-	$(Q) size $$@
-endef
-
-define linkp
-DEPS += $(call obj,$2,$1,d)
-$1: $(bindir)/$1
-$(bindir)/$1: $(call obj,$2,$1,o) $(call libs,$1_SLIBS,a) $(call libs,$1_DLIBS,so) $(patsubst $(srcdir)/%.asm,$(outdir)/%.o,$($1_CRT))
-	$(S) mkdir -p $$(dir $$@)
-	$(Q) echo "    LD  "$$@
-	$(V) $(LD) -T $($(1)_SCP) $($(1)_LFLAGS) -o $$@ -Map $$@.map $(call obj,$2,$1,o) $(call libs,$1_SLIBS,a) $($(1)_LFLAGS2)
-	$(Q) ls -lh $$@
-	$(Q) size $$@
-endef
-
-define kimg
-DEPS += $(call obj,$2,$1,d)
-$1: $(gendir)/$1
-$(gendir)/$1: $(call obj,$2,$1,o) $(outdir)/_$(target_arch)/crtk.o
-	$(S) mkdir -p $$(dir $$@)
-	$(Q) echo "    LD  "$$@
-	$(V) $(LD) -T $(srcdir)/_$(target_arch)/kernel.ld $($(1)_LFLAGS) -o $$@ $(call obj,$2,$1,o)
-	$(Q) ls -lh $$@
-	$(Q) size $$@
-endef
-
-define ccpl
-$(outdir)/$(1)/%.o: $(srcdir)/%.c
-	$(S) mkdir -p $$(dir $$@)
-	$(Q) echo "    CC  "$$@
-	$(V) $(CC) -c $($(1)_CFLAGS) -o $$@ $$<
-$(outdir)/$(1)/%.d: $(srcdir)/%.c
-	$(S) mkdir -p $$(dir $$@)
-	$(Q) echo "    CM  "$$@
-	$(V) $(CC) -M $($(1)_CFLAGS) -o $$@ $$<
-endef
-
-define crt
-$(outdir)/$1.o: $(srcdir)/$1.asm
-	$(S) mkdir -p $$(dir $$@)
-	$(Q) echo "    ASM "$$@
-	$(V) nasm -f elf32 -o $$@ $$^
-endef
-
-$(libdir)/lib%.a:
+$(bindir)/krish: $(OBJS-y)
 	$(S) mkdir -p $(dir $@)
-	$(Q) echo "    AR  "$@
-	$(V) $(AR) src $@ $^
+	$(Q) echo "    LD $@"
+	$(V) $(CC) -o $@ $^ $(LFLAGS)
 
-# S O U R C E S   C O M P I L A T I O N -=-=-=-=-=-=-=-=-
-include $(topdir)/sources.mk
+$(outdir)/%.o: $(srcdir)/%.c
+	$(S) mkdir -p $(dir $@)
+	$(Q) echo "    CC $@"
+	$(V) $(CC) -c -o $@ $< $(CFLAGS)
 
-# C O M M O N   T A R G E T S -=-=-=-=-=-=-=-=-=-=-=-=-=-
-libs: $(DV_LIBS)
-utils: $(DV_UTILS) $(DV_CHECK)
-statics: $(patsubst %,$(gendir)/lib/%.a,$(DV_LIBS))
-# install: install_dev install_runtime install_utils
-# unistall:
-# TODO -- rm $(prefix)/XX (without messing with others libs)
+
 clean:
-	$(V) rm -rf $(outdir)
-distclean: clean
-	$(V) rm -rf $(libdir)
-	$(V) rm -rf $(bindir)
-config:
-# TODO -- Create/update configuration headers
-check: $(DV_CHECK)
-# TODO -- Launch unit tests
-.PHONY: all libs utils install unistall
-.PHONY: clean distclean config check
+	$(V) rm -rf $(bindir) $(libdir) $(outdir)
 
-# P A C K A G I N G -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-release: $(gendir)/$(NAME)-$(target_arch)-$(VERSION).tar
-	$(V) gzip $< -o $@.gz
 
-$(gendir)/$(NAME)-$(target_arch)-$(VERSION).tar: $(DV_UTILS) $(DV_LIBS)
-	$(Q)  "  TAR   $@"
-	$(V) tar cf $@  -C $(topdir) $(topdir)/include
-	$(V) tar af $@ -C $(gendir) $^
-
-# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-deps:
-	$(S) echo $(DEPS)
-
-dirs:
-	@ echo GPATH: $(GPATH)
-	@ echo VPATH: $(VPATH)
-	@ echo SPATH: $(SPATH)
-
-delv:
-	@ echo LIBS: $(DV_LIBS)
-	@ echo UTILS: $(DV_UTILS)
-
-ifeq ($(NODEPS),)
--include $(DEPS)
-endif

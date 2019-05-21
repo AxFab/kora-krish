@@ -18,9 +18,10 @@
 # Building files
 !Makefile
 !*.mk
+!*.sh
 
 # Source files
-!include/**/*.h
-!src/**/*.c
+!*.h
+!*.c
 
 # Exceptions
