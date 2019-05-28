@@ -82,8 +82,11 @@ extern const font_bmp_t font_6x9;
 extern const font_bmp_t font_8x8;
 
 typedef struct gfx_msg {
-    int message;
-    int param;
+    int64_t timestamp;
+    int32_t param1;
+    int32_t param2;
+    uint16_t message;
+    uint16_t unsued;
 } gfx_msg_t;
 
 #define EV_QUIT  0
@@ -95,6 +98,7 @@ typedef struct gfx_msg {
 #define EV_KEYUP  7
 #define EV_TIMER  8
 #define EV_DELAY  9
+#define EV_RESIZE 10
 
 
 #define KEY_SHIFT_L  1

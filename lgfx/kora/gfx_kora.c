@@ -88,32 +88,38 @@ int gfx_loop(gfx_t *gfx, void *arg, gfx_handlers_t *handlers)
         case EV_QUIT:
             return 0;
         case EV_MOUSEMOVE:
-            seat.mouse_x = msg.param & 0x7fff;
-            seat.mouse_y = msg.param >> 16;
+            seat.mouse_x = msg.param1 & 0x7fff;
+            seat.mouse_y = msg.param1 >> 16;
             if (handlers->mse_move)
                 handlers->mse_move(gfx, arg, &seat);
             break;
         case EV_BUTTONDOWN:
-            seat.btn_status |= msg.param;
+            seat.btn_status |= msg.param1;
             if (handlers->mse_down)
-                handlers->mse_down(gfx, arg, &seat, msg.param);
+                handlers->mse_down(gfx, arg, &seat, msg.param1);
             break;
         case EV_BUTTONUP:
-            seat.btn_status &= ~msg.param;
+            seat.btn_status &= ~msg.param1;
             if (handlers->mse_up)
-                handlers->mse_up(gfx, arg, &seat, msg.param);
+                handlers->mse_up(gfx, arg, &seat, msg.param1);
             break;
         case EV_MOUSEWHEEL:
             if (handlers->mse_wheel)
-                handlers->mse_wheel(gfx, arg, &seat, msg.param);
+                handlers->mse_wheel(gfx, arg, &seat, msg.param1);
             break;
         case EV_KEYDOWN:
             if (handlers->key_down)
-                handlers->key_down(gfx, arg, &seat, msg.param);
+                handlers->key_down(gfx, arg, &seat, msg.param2);
             break;
         case EV_KEYUP:
             if (handlers->key_up)
-                handlers->key_up(gfx, arg, &seat, msg.param);
+                handlers->key_up(gfx, arg, &seat, msg.param2);
+            break;
+        case EV_RESIZE:
+            // gfx_unmap(gfx);
+            gfx->width = msg.param1;
+            gfx->height = msg.param2;
+            gfx->pitch = ALIGN_UP(gfx->width * 4, 4);
             break;
         case EV_TIMER:
             if (handlers->repaint == NULL || handlers->repaint(gfx, arg, &seat)) {
