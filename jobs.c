@@ -120,6 +120,8 @@ static void job_run(job_t *job)
     bbtree_remove(&shell_jobs, job->pid);
     mtx_unlock(&shell_mtx);
     job_destroy(job);
+    thrd_detach(thrd_current());
+    thrd_exit(0);
 }
 
 void job_start(job_t *job)
@@ -130,6 +132,11 @@ void job_start(job_t *job)
         // TODO Know why?
         sprintf(buf, "- '%s': Unable to start command\n", job->name);
         terminal_puts(job->tty, buf);
+
+        mtx_lock(&shell_mtx);
+        bbtree_remove(&shell_jobs, job->pid);
+        mtx_unlock(&shell_mtx);
+        job_destroy(job);
         return;
     }
 

@@ -160,7 +160,20 @@ int main(int argc, char const *argv[])
     job_init();
     termio_t *tty = terminal_create(on_readline);
     __tty = tty;
+#if 0
     gfx_t *win = gfx_create_window(NULL, _16x10(480), 480, 0);
+#else
+    int fb0 = open("/fb0", O_RDWR);
+    int kdb = open("/kdb", O_RDONLY);
+    gfx_t *win = malloc(sizeof(gfx_t));
+    win->width = 1280;
+    win->height = 720;
+    win->fd = fb0;
+    win->fi = kdb;
+    win->pixels = NULL;
+    win->backup = NULL;
+
+#endif
     terminal_resize(tty, win);
 
     gfx_map(win);

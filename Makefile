@@ -36,8 +36,13 @@ CFLAGS +=  -ggdb
 
 LFLAGS += -L $(libdir) -lgfx
 
+ifneq ($(LGFX_HOME),)
+LFLAGS += -L $(LGFX_HOME)/lib
+CFLAGS += -I $(LGFX_HOME)/include
+endif
+
 ifeq ($(DISTO),linux)
-LFLAGS += -lpthread 
+LFLAGS += -lpthread
 else ifeq ($(DISTO),kora)
 CFLAGS += -Dmain=_main
 endif
