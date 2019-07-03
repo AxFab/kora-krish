@@ -24,23 +24,20 @@ include $(topdir)/make/global.mk
 
 all: $(bindir)/krish
 
-DISTO=kora
+DISTO ?= kora
 
 SRCS-y += $(wildcard $(srcdir)/*.c)
-SRCS-y += $(wildcard $(srcdir)/lgfx/*.c)
-SRCS-y += $(wildcard $(srcdir)/lgfx/$(DISTO)/*.c)
+SRCS-y += $(wildcard $(srcdir)/$(DISTO)/*.c)
 
 OBJS-y = $(patsubst $(srcdir)/%.c,$(outdir)/%.o,$(SRCS-y))
 
-CFLAGS += -I $(topdir)/lgfx/include
-CFLAGS += -I $(topdir)/lgfx/$(DISTO)
+CFLAGS += -I $(topdir)/$(DISTO)
 CFLAGS +=  -ggdb
-CFLAGS += -Dmain=_main
 
-ifeq ($(DISTO),x11)
-LFLAGS += -lpthread -lX11
-else ifeq ($(DISTO),bmp)
-LFLAGS += -lpthread
+LFLAGS += -L $(libdir) -lgfx
+
+ifeq ($(DISTO),linux)
+LFLAGS += -lpthread 
 else ifeq ($(DISTO),kora)
 CFLAGS += -Dmain=_main
 endif
