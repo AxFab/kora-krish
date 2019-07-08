@@ -127,7 +127,7 @@ static void job_run(job_t *job)
 void job_start(job_t *job)
 {
     char buf[64];
-    int pid = __exec(job->name, job->argc, job->argv, job->fstd);
+    int pid = __exec(job->name, job->argv, NULL, job->fstd);
     if (pid < 0) {
         // TODO Know why?
         sprintf(buf, "- '%s': Unable to start command\n", job->name);

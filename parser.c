@@ -216,7 +216,10 @@ void parse_flush()
 
 char *parse_tokenize(const char *line, const char **sreg)
 {
-    int lg, c1, c2;
+    const char *OPS = "<>|&^()";
+    const char *OPS2 = "<>|&";
+    const char *QUOTE = "'\"`";
+    int lg, c1, c2, s = 0;
     const char *tok1 = *sreg;
     char *tok2;
     if (tok1 == NULL)
@@ -230,24 +233,24 @@ char *parse_tokenize(const char *line, const char **sreg)
 
     *sreg = tok1;
     c1 = *tok1;
-    if (c1 == '>' || c1 == '<' || c1 == '|' || c1 == '&') {
+    if (strchr(OPS, c1) != NULL) {
         tok1++;
         c2 = *tok1;
-        if (c2 == c1)
+        if (c2 == c1 && strchr(OPS2, c1) != NULL)
             tok1++;
-    } else if (c1 == '"' || c1 == '\'') {
-        tok1++;
+    } else if (strchr(QUOTE, c1) != NULL) {
         c2 = *tok1;
+        tok1++;
+        *sreg = tok1;
         while (c2 && c1 != c2) {
+            c2 = tok1[1];
             tok1++;
-            c2 = *tok1;
         }
+        s = 1;
         if (c2)
             tok1++;
-    } else if (c1 == '^' || c1 == '(' || c1 == ')')
-        tok1++;
-    else {
-        while (*tok1 != '\0' && (*tok1 < 0 || !isblank(*tok1)))
+    } else {
+        while (strchr(OPS, *tok1) == NULL && *tok1 != '\0' && (*tok1 < 0 || !isblank(*tok1)))
             tok1++;
     }
 
@@ -259,7 +262,7 @@ char *parse_tokenize(const char *line, const char **sreg)
 
     tok2 = (char *)malloc((lg + 1) * sizeof(char));
     memcpy(tok2, *sreg, lg * sizeof(char));
-    tok2[lg] = '\0';
+    tok2[lg - s] = '\0';
     *sreg = tok1;
     return tok2;
 }

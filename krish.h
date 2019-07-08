@@ -96,6 +96,6 @@ char *parse_tokenize(const char *line, const char **sreg);
 /* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= */
 
 void shell_prompt(termio_t *tty);
-int __exec(char *name, int argc, char **argv, int fds[3]);
+int __exec(char *name, const char **argv, const char **env, int fds[3]);
 
 #endif  /* __KRISH_H */

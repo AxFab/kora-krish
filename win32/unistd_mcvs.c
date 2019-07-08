@@ -31,7 +31,7 @@ int pipe(int fds[2])
     return pipe2(fds, 0);
 }
 
-int __exec(char *name, int argc, char **argv, int fds[3])
+int __exec(char *name, const char **argv, const char **env, int fds[3])
 {
     int i;
     char cmdline[4096];

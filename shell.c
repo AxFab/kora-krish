@@ -38,12 +38,12 @@ struct shell_cmd *Shell_cmd()
 
 static void Shell_stash_show(struct shell_cmd *cmd, char *msg)
 {
-    if (cmd == NULL)
-        cmd = Shell_cmd();
-    printf("   %-20s '%s'(%d) <%d, %d, %d> {%2o}\n",
-           msg, cmd->name_, cmd->argc_,
-           cmd->in_, cmd->out_, cmd->err_,
-           cmd->flags_);
+    // if (cmd == NULL)
+    //     cmd = Shell_cmd();
+    // printf("   %-20s '%s'(%d) <%d, %d, %d> {%2o}\n",
+    //        msg, cmd->name_, cmd->argc_,
+    //        cmd->in_, cmd->out_, cmd->err_,
+    //        cmd->flags_);
 }
 
 int Shell_fifo()
@@ -131,8 +131,10 @@ int Shell_run()
     if (__cmd->out_ == 0)
         __cmd->out_ = Shell_fifo();
     Shell_stash_show(__cmd, "Execute");
-    if (!in_error)
+    if (!in_error) {
+        Shell_stack_arg(NULL);
         Shell_exec(__cmd);
+    }
     fd_out = __cmd->out_;
     Shell_free_cmd(__cmd);
     return fd_out;
@@ -153,11 +155,11 @@ void Shell_stack_arg(char *token)
 {
     if (Shell_cmd()->name_ == NULL) {
         Shell_cmd()->name_ = strdup(token);
-        // printf("  == '%s'\n", token);
     } else if (Shell_cmd()->argc_ < 64) {
-        Shell_cmd()->argv_[Shell_cmd()->argc_] = strdup(token);
-        Shell_cmd()->argc_++;
-        // printf("    -- '%s'\n", token);
+        if (token != NULL)
+            Shell_cmd()->argv_[Shell_cmd()->argc_++] = strdup(token);
+        else
+            Shell_cmd()->argv_[Shell_cmd()->argc_] = NULL;
     }
 }
 
