@@ -3,7 +3,7 @@
 #include <stdint.h>
 // #include <mbstring.h>
 #include "krish.h"
-#include "gfx.h"
+#include <kora/gfx.h>
 #include <threads.h>
 
 /* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= */

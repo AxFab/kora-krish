@@ -1,5 +1,5 @@
 #include "krish.h"
-#include "gfx.h"
+#include <kora/gfx.h>
 #include "threads.h"
 #include "llist.h"
 #include <assert.h>
@@ -554,7 +554,7 @@ void terminal_key(termio_t *tty, uchar_t unicode, int status)
 {
     int i;
     mtx_lock(&tty->mtx);
-    if (status & KDB_CTRL && status != 0xC) {
+    if (status & KEY_STATUS_CTRL && status != 0xC) {
         switch (unicode) {
         case 'd':
             if (tty->fjob)

@@ -2,7 +2,7 @@
 #define __KRISH_H 1
 
 #include <stdlib.h>
-#include "gfx.h"
+#include <kora/gfx.h>
 #include <unistd.h>
 #include <string.h>
 #include <ctype.h>
