@@ -1,5 +1,5 @@
-#      This file is part of the SmokeOS project.
-#  Copyright (C) 2015  <Fabien Bavent>
+#      This file is part of the KoraOS project.
+#  Copyright (C) 2018  <Fabien Bavent>
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU Affero General Public License as
@@ -14,41 +14,45 @@
 #  You should have received a copy of the GNU Affero General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-#  This makefile is more or less generic.
-#  The configuration is on `sources.mk`.
-# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 topdir ?= $(shell readlink -f $(dir $(word 1,$(MAKEFILE_LIST))))
 gendir ?= $(shell pwd)
 
 include $(topdir)/var/make/global.mk
+# srcdir = $(topdir)/src
 
-all: krish
+all: libname
+install: $(prefix)/lib/libname.so
 
-DISTO ?= kora
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+CFLAGS ?= -Wall -Wextra -Wno-unused-parameter -ggdb
+CFLAGS += -I$(topdir)/include -fPIC
+
+# SRCS-y += $(wildcard $(srcdir)/dir/*.c)
+# SRCS-y += $(wildcard $(srcdir)/$(DISTO)/*.c)
 
 include $(topdir)/var/make/build.mk
+# include $(topdir)/arch/$(target_arch)/make.mk
 
-SRCS-y += $(wildcard $(srcdir)/*.c)
-SRCS-y += $(wildcard $(srcdir)/$(DISTO)/*.c)
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-CFLAGS ?= -Wall -Wextra -ggdb
-CFLAGS += -I $(topdir)/$(DISTO)
+# DISTO ?= my-disto
 
-LFLAGS += -L $(libdir) -lgfx
-
-ifneq ($(LGFX_HOME),)
-LFLAGS += -L $(LGFX_HOME)/lib
-CFLAGS += -I $(LGFX_HOME)/include
+ifeq ($(DISTO),A)
+LFLAGS += -lA
+else ifeq ($(DISTO),B)
+LFLAGS += -lB
+else ifeq ($(DISTO),C)
+CFLAGS += -Dname=C
+LFLAGS += -lC
 endif
 
-ifeq ($(DISTO),linux)
-LFLAGS += -lpthread
-else ifeq ($(DISTO),kora)
-CFLAGS += -Dmain=_main
-endif
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-$(eval $(call link_bin,krish,SRCS,LFLAGS))
+$(eval $(call link_shared,name,SRCS,LFLAGS))
+
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 ifeq ($(NODEPS),)
--include $(call fn_deps,SRCS-y)
+include $(call fn_deps, SRCS)
 endif
