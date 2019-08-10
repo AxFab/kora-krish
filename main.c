@@ -138,15 +138,15 @@ void on_mse_wheel(gfx_t *gfx, termio_t *tty, gfx_seat_t *seat, int disp)
 /* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= */
 
 gfx_handlers_t handlers = {
-    .repaint = (void*)on_repaint,
-    .expose = (void*)on_expose,
-    .resize = (void*)on_resize,
-    .key_up = (void*)on_key_up,
-    .key_down = (void*)on_key_down,
-    .mse_up = (void*)on_mse_up,
-    .mse_down = (void*)on_mse_down,
-    .mse_move = (void*)on_mse_move,
-    .mse_wheel = (void*)on_mse_wheel,
+    .repaint = (void *)on_repaint,
+    .expose = (void *)on_expose,
+    .resize = (void *)on_resize,
+    .key_up = (void *)on_key_up,
+    .key_down = (void *)on_key_down,
+    .mse_up = (void *)on_mse_up,
+    .mse_down = (void *)on_mse_down,
+    .mse_move = (void *)on_mse_move,
+    .mse_wheel = (void *)on_mse_wheel,
 };
 
 

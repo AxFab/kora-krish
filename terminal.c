@@ -206,20 +206,19 @@ void terminal_ansi_graphics(termio_t *tty, term_cell_t *cell, int *values, int s
         } else if (values[0] == 9) { // Crossed-out
         } else if (values[0] < 21) { // Select font
         } else if (values[0] < 30) {
-        } else if (values[0] < 38) { // Foreground
+        } else if (values[0] < 38)   // Foreground
             cell->fcolor = tty->colors[values[0] - 30];
-        } else if (values[0] == 38) {
-        } else if (values[0] == 39) {
+        else if (values[0] == 38) {
+        } else if (values[0] == 39)
             cell->fcolor = tty->colors[7];
-        } else if (values[0] < 48) { // Background
+        else if (values[0] < 48)   // Background
             cell->bcolor = tty->colors[values[0] - 40];
-        } else if (values[0] == 48) {
-        } else if (values[0] == 49) {
+        else if (values[0] == 48) {
+        } else if (values[0] == 49)
             cell->bcolor = tty->colors[0];
-        } else if (values[0] < 90) {
-        } else if (values[0] < 98) { // Foreground
+        else if (values[0] < 90) {
+        } else if (values[0] < 98)   // Foreground
             cell->fcolor = tty->colors[values[0] - 90 + 8];
-        }
     }
 }
 
@@ -614,9 +613,9 @@ void terminal_key(termio_t *tty, uchar_t unicode, int status)
         }
         int ed = tty->buf_input.last->row - (tty->scroll - tty->buf_lines.last->row);
         terminal_inval_rows(tty, st, ed);
-    } else if (unicode < 0x80) {
-        terminal_write_chars(tty, &tty->buf_input, (char*)&unicode, 1, tty->scroll - tty->buf_lines.last->row);
-    } else {
+    } else if (unicode < 0x80)
+        terminal_write_chars(tty, &tty->buf_input, (char *)&unicode, 1, tty->scroll - tty->buf_lines.last->row);
+    else {
         char buf[UC_LEN_MAX];
         int lg = uctomb(buf, unicode);
         if (lg <= 1) {

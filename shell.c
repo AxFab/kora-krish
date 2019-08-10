@@ -153,9 +153,9 @@ void Shell_error(char *error, char *token)
 
 void Shell_stack_arg(char *token)
 {
-    if (Shell_cmd()->name_ == NULL) {
+    if (Shell_cmd()->name_ == NULL)
         Shell_cmd()->name_ = strdup(token);
-    } else if (Shell_cmd()->argc_ < 64) {
+    else if (Shell_cmd()->argc_ < 64) {
         if (token != NULL)
             Shell_cmd()->argv_[Shell_cmd()->argc_++] = strdup(token);
         else

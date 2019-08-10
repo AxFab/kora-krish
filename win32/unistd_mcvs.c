@@ -81,7 +81,7 @@ int __exec(char *name, const char **argv, const char **env, int fds[3])
                       NULL,
                       &siStartInfo,
                       &piProcInfo)
-                      == FALSE) {
+        == FALSE) {
         CloseHandle(hInRd);
         CloseHandle(hInWr);
         CloseHandle(hOutRd);
