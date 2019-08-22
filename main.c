@@ -150,17 +150,12 @@ gfx_handlers_t handlers = {
 };
 
 
-extern const char *pipe_name;
-
 int main(int argc, char const *argv[])
 {
-    if (argc > 1)
-        pipe_name = argv[1];
-
     job_init();
     termio_t *tty = terminal_create(on_readline);
     __tty = tty;
-#if 0
+#ifndef main
     gfx_t *win = gfx_create_window(NULL, _16x10(480), 480, 0);
 #else
     int fb0 = open("/fb0", O_RDWR);

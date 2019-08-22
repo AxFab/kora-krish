@@ -1,7 +1,7 @@
 #include "krish.h"
 #include <kora/gfx.h>
-#include "threads.h"
-#include "llist.h"
+#include <threads.h>
+#include <kora/llist.h>
 #include <assert.h>
 #include <stdio.h>
 
@@ -51,7 +51,7 @@ struct termio {
     bool *invals;
     term_buffer_t buf_lines;
     term_buffer_t buf_input;
-    mtx_t mtx;
+	mtx_t mtx;
     job_t *fjob;
     void(*readline)(termio_t *, const char *);
 
@@ -101,7 +101,7 @@ termio_t *terminal_create(void(*readline)(termio_t *, const char *))
     tty->readline = readline;
     tty->start_row = -1;
     tty->end_row = -1;
-    tty->font = &font_7x13;
+    tty->font = gfx_fetch_font(2);
 
     tty->colors[0] = 0x101010;
     tty->colors[1] = 0xa61010;

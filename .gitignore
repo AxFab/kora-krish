@@ -37,6 +37,7 @@
 !resx/**/*
 
 # Visual studio
-!vs/*.sln
-!vs/*.vcxproj.*
+[Dd]ebug/
+!var/vs/*.sln
+!var/vs/**/*.vcxproj.*
 

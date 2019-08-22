@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "krish.h"
-#include <llist.h>
-#include <bbtree.h>
+#include <kora/llist.h>
+#include <kora/bbtree.h>
 #include <threads.h>
 #include <unistd.h>
 

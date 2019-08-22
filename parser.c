@@ -225,7 +225,7 @@ char *parse_tokenize(const char *line, const char **sreg)
     if (tok1 == NULL)
         tok1 = line;
 
-    while (isblank(*tok1))
+    while (isblank(*tok1) || *tok1 == '\n')
         tok1++;
 
     if (*tok1 == '\0')
@@ -250,7 +250,7 @@ char *parse_tokenize(const char *line, const char **sreg)
         if (c2)
             tok1++;
     } else {
-        while (strchr(OPS, *tok1) == NULL && *tok1 != '\0' && (*tok1 < 0 || !isblank(*tok1)))
+        while (strchr(OPS, *tok1) == NULL && *tok1 != '\0' && *tok1 != '\n' && (*tok1 < 0 || !isblank(*tok1)))
             tok1++;
     }
 
