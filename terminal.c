@@ -177,9 +177,9 @@ void terminal_inval_rows(termio_t *tty, int from, int to)
     // printf("INVAL: %d -> %d\n", from, to);
     int rows = tty->rows;
     if (tty->invals == NULL)
-        tty->invals = calloc(sizeof(bool), rows);
+        tty->invals = calloc(rows, sizeof(bool));
     from = MAX(0, from);
-    to = MIN(to, rows);
+    to = MIN(to, rows - 1);
     for (; from <= to; ++from)
         tty->invals[from] = true;
     tty->invalid = true;
