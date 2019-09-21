@@ -334,8 +334,11 @@ void terminal_backspace(termio_t *tty, term_buffer_t *buffer)
 {
     if (buffer->last->len <= 0)
         return;
+    // TODO -- Remove UTF-8 characters !!
     buffer->last->len--;
     buffer->last->pen--;
+    if (buffer->last->len == 0)
+        buffer->last->pen = buffer->last->text;
 }
 
 void terminal_write_into(termio_t *tty, term_buffer_t *src, term_buffer_t *dest)
@@ -615,7 +618,7 @@ void terminal_key(termio_t *tty, uchar_t unicode, int status)
         terminal_inval_rows(tty, st, ed);
     } else if (unicode < 0x80)
         terminal_write_chars(tty, &tty->buf_input, (char *)&unicode, 1, tty->scroll - tty->buf_lines.last->row);
-    else {
+    else if (unicode < 0x100000) {
         char buf[UC_LEN_MAX];
         int lg = uctomb(buf, unicode);
         if (lg <= 1) {
