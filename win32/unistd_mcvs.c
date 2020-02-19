@@ -36,6 +36,7 @@ int __exec(char *name, const char **argv, const char **env, int fds[3])
     int i;
     char cmdline[4096];
 
+    int argc = 0;
     strncpy(cmdline, name, 4096);
     for (i = 0; i < argc; ++i) {
         strncat(cmdline, " ", 4096);

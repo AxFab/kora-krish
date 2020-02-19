@@ -20,13 +20,13 @@
 topdir ?= $(shell readlink -f $(dir $(word 1,$(MAKEFILE_LIST))))
 gendir ?= $(shell pwd)
 
-include $(topdir)/var/make/global.mk
+include $(topdir)/make/global.mk
 
 all: krish
 
 DISTO ?= kora
 
-include $(topdir)/var/make/build.mk
+include $(topdir)/make/build.mk
 
 SRCS-y += $(wildcard $(srcdir)/*.c)
 SRCS-y += $(wildcard $(srcdir)/$(DISTO)/*.c)

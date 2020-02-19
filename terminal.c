@@ -4,6 +4,7 @@
 #include <kora/llist.h>
 #include <assert.h>
 #include <stdio.h>
+#include "fonts.h"
 
 
 #define _sR(v)  (((v) & 0xFF) << 16)
@@ -183,6 +184,8 @@ void terminal_inval_rows(termio_t *tty, int from, int to)
     for (; from <= to; ++from)
         tty->invals[from] = true;
     tty->invalid = true;
+    if (tty->win)
+        gfx_invalid(tty->win);
 }
 
 void terminal_ansi_graphics(termio_t *tty, term_cell_t *cell, int *values, int sp)
@@ -291,7 +294,7 @@ void terminal_write_chars(termio_t *tty, term_buffer_t *buffer, const unsigned c
 {
     int from = buffer->last->row - scroll;
     while (len > 0) {
-        int lg = uclen(buf, len);
+        int lg = mblen(buf, len);
         if (lg <= 0) {
             len--;
             buf++;
@@ -414,8 +417,8 @@ void display_cell(termio_t *tty, int row, int col, const char *text, int len, ui
         if (text[i] >= 0x20)
             gfx_glyph(gfx, font, text[i], fg, bg, (col + i - s) * font->dispx, row * font->dispy);
         else if (text[i] < 0) {
-            uchar_t unicode;
-            int ln = mbtouc(&unicode, &text[i], len);
+            wchar_t unicode;
+            int ln = mbtowc(&unicode, &text[i], len);
             if (ln < 1)
                 continue;
             gfx_glyph(gfx, font, 0x7F, fg, bg, (col + i - s) * font->dispx, row * font->dispy);
@@ -503,11 +506,11 @@ void terminal_paint(termio_t *tty)
     }
 
     if (tty->resize == true)
-        gfx_clear(tty->win, tty->colors[0]);
+        gfx_fill(tty->win, tty->colors[0], GFX_COPY_BLEND, NULL);
 
     // Debug
     gfx_t *win = tty->win;
-    gfx_rect(win, win->width - 3, 0, 3, win->height, 0x00f2c2);
+    // gfx_rect(win, win->width - 3, 0, 3, win->height, 0x00f2c2);
 
     int pl = tty->buf_lines.last->len > 0 ? 0 : 1;
     for (i = 0; i < rows; ++i) {
@@ -523,25 +526,30 @@ void terminal_paint(termio_t *tty)
         int idx = row % buffer->size;
         if (!tty->resize && !tty->invals[i])
             continue;
+        gfx_clip_t rline;
+        rline.left = 0;
+        rline.right = tty->win->width;
+        rline.top = i * tty->font->dispy;
+        rline.bottom = rline.top + tty->font->dispy;
         if (buffer->lines[idx].row != row) {
             if (!tty->resize && tty->invals[i])
-                gfx_rect(tty->win, 0, i * tty->font->dispy, tty->win->width, tty->font->dispy, tty->colors[0]);
+                gfx_fill(tty->win, tty->colors[0], GFX_COPY_BLEND, &rline);
             continue;
         }
 
         // Draw lines
-        gfx_rect(tty->win, 0, i * tty->font->dispy, tty->win->width, tty->font->dispy, tty->colors[0]);
+        gfx_fill(tty->win, tty->colors[0], GFX_COPY_BLEND, &rline);
         term_cell_t *cell;
         for ll_each(&buffer->lines[idx].cells, cell, term_cell_t, node)
             DISPLAY_CELL(tty, i, cell);
         if (buffer->last->row == idx)
             DISPLAY_CELL(tty, i, buffer->last);
 
-        if (tty->invals != NULL && tty->invals[i] == true) {
+        /*if (tty->invals != NULL && tty->invals[i] == true) {
             int dy = tty->font->dispy;
             gfx_rect(win, win->width - 3, i * dy, 3, dy, 0xf20032);
             tty->invals[i] = false;
-        }
+        }*/
     }
 
     tty->resize = false;
@@ -618,9 +626,9 @@ void terminal_key(termio_t *tty, uchar_t unicode, int status)
         terminal_inval_rows(tty, st, ed);
     } else if (unicode < 0x80)
         terminal_write_chars(tty, &tty->buf_input, (char *)&unicode, 1, tty->scroll - tty->buf_lines.last->row);
-    else if (unicode < 0x100000) {
+    else if (unicode <= 0xD7ff || (unicode < 0x10ffff && unicode >= 0xe000)) {
         char buf[UC_LEN_MAX];
-        int lg = uctomb(buf, unicode);
+        int lg = wctomb(buf, unicode);
         if (lg <= 1) {
             mtx_unlock(&tty->mtx);
             return;
@@ -707,6 +715,8 @@ void terminal_inval_all(termio_t *tty)
         free(tty->invals);
     tty->invals = NULL;
     tty->invalid = true;
+    if (tty->win)
+        gfx_invalid(tty->win);
 }
 
 int terminal_copy(termio_t *tty, char *buf, int lg)
@@ -772,4 +782,30 @@ int terminal_paste(termio_t *tty, const char *buf, int len)
 }
 
 
+
+
+void gfx_glyph(gfx_t* gfx, const font_bmp_t* font, uint32_t unicode, uint32_t fg, uint32_t bg, int x, int y)
+{
+    int l, px, ph;
+    int py = y;
+    int gx = MIN(gfx->width, x + font->width);
+    int sx = MIN(gfx->width, x + font->dispx);
+    int gy = MIN(gfx->height, y + font->height);
+    int sy = MIN(gfx->height, y + font->dispy);
+    const uint8_t* glyph = &font->glyphs[(unicode - 0x20) * font->glyph_size];
+    for (l = 0; py < gy; ++py) {
+        ph = py * gfx->width;
+        for (px = x; px < gx; ++px, ++l)
+            gfx->pixels4[ph + px] = (glyph[l / 8] & (1 << l % 8)) ? fg : bg;
+        for (; px < sx; ++px)
+            gfx->pixels4[ph + px] = bg;
+        // TODO -- l is late if gx < x + font->width
+    }
+
+    for (; py < sy; ++py) {
+        ph = py * gfx->width;
+        for (px = x; px < sx; ++px)
+            gfx->pixels4[ph + px] = bg;
+    }
+}
 

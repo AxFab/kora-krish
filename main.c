@@ -137,17 +137,6 @@ void on_mse_wheel(gfx_t *gfx, termio_t *tty, gfx_seat_t *seat, int disp)
 
 /* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= */
 
-gfx_handlers_t handlers = {
-    .repaint = (void *)on_repaint,
-    .expose = (void *)on_expose,
-    .resize = (void *)on_resize,
-    .key_up = (void *)on_key_up,
-    .key_down = (void *)on_key_down,
-    .mse_up = (void *)on_mse_up,
-    .mse_down = (void *)on_mse_down,
-    .mse_move = (void *)on_mse_move,
-    .mse_wheel = (void *)on_mse_wheel,
-};
 
 
 int main(int argc, char const *argv[])
@@ -160,14 +149,7 @@ int main(int argc, char const *argv[])
 #else
     int fb0 = open("/fb0", O_RDWR);
     int kdb = open("/kdb", O_RDONLY);
-    gfx_t *win = malloc(sizeof(gfx_t));
-    win->width = 1280;
-    win->height = 720;
-    win->fd = fb0;
-    win->fi = kdb;
-    win->pixels = NULL;
-    win->backup = NULL;
-
+    gfx_t *win = gfx_opend(fb0, kdb);
 #endif
     terminal_resize(tty, win);
 
@@ -175,7 +157,45 @@ int main(int argc, char const *argv[])
     terminal_puts(tty, "  Welcome on \033[96mKrish\033[0m, \033[90;43mv0.1.3\033[0m\n");
     shell_prompt(tty);
 
-    gfx_loop(win, tty, &handlers);
+    gfx_msg_t msg;
+    gfx_seat_t seat;
+    memset(&seat, 0, sizeof(seat));
+    for (;;) {
+        gfx_poll(win, &msg);
+        gfx_handle(win, &msg, &seat);
+        if (msg.message == GFX_EV_QUIT)
+            break;
+        switch (msg.message) {
+        case GFX_EV_MOUSEMOVE:
+            on_mse_move(win, tty, &seat);
+            break;
+        case GFX_EV_BTNUP:
+            on_mse_up(win, tty, &seat, msg.param1);
+            break;
+        case GFX_EV_BTNDOWN:
+            on_mse_down(win, tty, &seat, msg.param1);
+            break;
+        case GFX_EV_UNICODE:
+            terminal_key(tty, msg.param1, seat.kdb_status);
+            break;
+        case GFX_EV_MOUSEWHEEL:
+            terminal_scroll(tty, (int)msg.param1);
+            break;
+        case GFX_EV_RESIZE:
+            terminal_resize(tty, win);
+            break;
+        case GFX_EV_PAINT:
+            terminal_paint(tty);
+            gfx_flip(win);
+            break;
+        default:
+            break;
+            
+        }
+        
+    }
+
+
     gfx_unmap(win);
     gfx_destroy(win);
     terminal_destroy(tty);
