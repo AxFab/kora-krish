@@ -5,7 +5,7 @@
 
 typedef struct font_bmp font_bmp_t;
 
-struct font_bmp {
+typedef struct font_bmp {
     const uint8_t *glyphs;
     char glyph_size;
     char width;
