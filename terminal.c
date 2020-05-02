@@ -229,7 +229,19 @@ int terminal_ansi_sequence(termio_t *tty, term_cell_t *cell, const char *buf, in
 {
     char *r = (char *)&buf[1];
     int values[15];
-    int sp = 0;
+    int i, sp = 0;
+
+    // Check pattern
+    bool good = false;
+    for (i = 2; i < len; ++i) {
+        if (!isdigit(buf[i]) && buf[i] != ';') {
+            good = true;
+            break;
+        }
+    }
+    if (!good)
+        return -1;
+
     do {
         ++r;
         values[sp++] = strtol(r, &r, 10);
@@ -296,6 +308,7 @@ void terminal_write_chars(termio_t *tty, term_buffer_t *buffer, const unsigned c
     while (len > 0) {
         int lg = mblen(buf, len);
         if (lg <= 0) {
+            // TODO -- or len is too short !!!
             len--;
             buf++;
             continue;
@@ -319,6 +332,9 @@ void terminal_write_chars(termio_t *tty, term_buffer_t *buffer, const unsigned c
             if (len < 3 || buf[1] != '[')
                 break;
             lg = terminal_ansi_sequence(tty, buffer->last, buf, len);
+            if (lg < 1) {
+                // TODO -- or len is too short !!
+            }
             len -= lg;
             buf += lg;
         } else {

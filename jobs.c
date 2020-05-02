@@ -98,13 +98,15 @@ void job_args(job_t *job, int argc, char **argv)
 
 /* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= */
 
-static void job_run(job_t *job)
+#define PIPE_BUF_SIZE  512
+
+void job_run(job_t *job)
 {
     int bytes;
-    char buf[64];
+    char buf[PIPE_BUF_SIZE];
     if (job->flags & JB_TTYOUT) {
         do {
-            bytes = read(job->fstd[1], buf, 64);
+            bytes = read(job->fstd[1], buf, PIPE_BUF_SIZE);
             // TODO -- What about multi-bytes characters or escape sequences
             terminal_write(job->tty, buf, bytes);
         } while (bytes > 0);

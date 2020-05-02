@@ -29,7 +29,7 @@ SRCS-y += $(wildcard $(srcdir)/*.c)
 SRCS-y += $(wildcard $(srcdir)/$(DISTO)/*.c)
 
 CFLAGS ?= -Wall -Wextra -ggdb
-CFLAGS += -I $(topdir)/$(DISTO)
+CFLAGS += -I $(topdir)/$(DISTO) -D_GNU_SOURCE
 
 LFLAGS += -L $(libdir) -lgfx
 
