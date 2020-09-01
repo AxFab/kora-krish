@@ -3,7 +3,7 @@
 #include <stdint.h>
 // #include <mbstring.h>
 #include "krish.h"
-#include <kora/gfx.h>
+#include <gfx.h>
 #include <threads.h>
 
 /* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= */
@@ -73,22 +73,22 @@ void on_resize(gfx_t *gfx, termio_t *tty)
 {
     terminal_resize(tty, gfx);
 }
-
-void on_key_up(gfx_t *gfx, termio_t *tty, gfx_seat_t *seat, int key_code)
-{
-    int key = keyboard_up(key_code, &seat->kdb_status);
-    // printf("KEY UP: %x  (%o)\n", key, seat->kdb_status);
-}
-
-void on_key_down(gfx_t *gfx, termio_t *tty, gfx_seat_t *seat, int key_code)
-{
-    int key, key2;
-    key = keyboard_down(key_code, &seat->kdb_status, &key2);
-    if (key2 != 0)
-        terminal_key(tty, key2, seat->kdb_status);
-    // printf("KEY DW: %x  (%o)\n", key, seat->kdb_status);
-    terminal_key(tty, key, seat->kdb_status);
-}
+//
+//void on_key_up(gfx_t *gfx, termio_t *tty, gfx_seat_t *seat, int key_code)
+//{
+//    int key = keyboard_up(key_code, &seat->kdb_status);
+//    // printf("KEY UP: %x  (%o)\n", key, seat->kdb_status);
+//}
+//
+//void on_key_down(gfx_t *gfx, termio_t *tty, gfx_seat_t *seat, int key_code)
+//{
+//    int key, key2;
+//    key = keyboard_down(key_code, &seat->kdb_status, &key2);
+//    if (key2 != 0)
+//        terminal_key(tty, key2, seat->kdb_status);
+//    // printf("KEY DW: %x  (%o)\n", key, seat->kdb_status);
+//    terminal_key(tty, key, seat->kdb_status);
+//}
 
 
 void on_mse_up(gfx_t *gfx, termio_t *tty, gfx_seat_t *seat, int btn)
@@ -160,6 +160,7 @@ int main(int argc, char const *argv[])
     gfx_msg_t msg;
     gfx_seat_t seat;
     memset(&seat, 0, sizeof(seat));
+    gfx_keyboard_load(&seat);
     for (;;) {
         gfx_poll(win, &msg);
         gfx_handle(win, &msg, &seat);
@@ -175,7 +176,7 @@ int main(int argc, char const *argv[])
         case GFX_EV_BTNDOWN:
             on_mse_down(win, tty, &seat, msg.param1);
             break;
-        case GFX_EV_UNICODE:
+        case GFX_EV_KEYPRESS:
             terminal_key(tty, msg.param1, seat.kdb_status);
             break;
         case GFX_EV_MOUSEWHEEL:
@@ -188,11 +189,8 @@ int main(int argc, char const *argv[])
             terminal_paint(tty);
             gfx_flip(win);
             break;
-        default:
-            break;
-            
         }
-        
+
     }
 
 

@@ -1,7 +1,9 @@
 #include "krish.h"
-#include <kora/gfx.h>
+#include <gfx.h>
 #include <threads.h>
+#include <kora/mcrs.h>
 #include <kora/llist.h>
+#include <keycodes.h>
 #include <assert.h>
 #include <stdio.h>
 #include "fonts.h"
@@ -522,7 +524,7 @@ void terminal_paint(termio_t *tty)
     }
 
     if (tty->resize == true)
-        gfx_fill(tty->win, tty->colors[0], GFX_COPY_BLEND, NULL);
+        gfx_fill(tty->win, tty->colors[0], GFX_NOBLEND, NULL);
 
     // Debug
     gfx_t *win = tty->win;
@@ -549,12 +551,12 @@ void terminal_paint(termio_t *tty)
         rline.bottom = rline.top + tty->font->dispy;
         if (buffer->lines[idx].row != row) {
             if (!tty->resize && tty->invals[i])
-                gfx_fill(tty->win, tty->colors[0], GFX_COPY_BLEND, &rline);
+                gfx_fill(tty->win, tty->colors[0], GFX_NOBLEND, &rline);
             continue;
         }
 
         // Draw lines
-        gfx_fill(tty->win, tty->colors[0], GFX_COPY_BLEND, &rline);
+        gfx_fill(tty->win, tty->colors[0], GFX_NOBLEND, &rline);
         term_cell_t *cell;
         for ll_each(&buffer->lines[idx].cells, cell, term_cell_t, node)
             DISPLAY_CELL(tty, i, cell);
@@ -580,7 +582,7 @@ void terminal_key(termio_t *tty, uchar_t unicode, int status)
 {
     int i;
     mtx_lock(&tty->mtx);
-    if (status & KEY_STATUS_CTRL && status != 0xC) {
+    if (status & KMOD_CTRL && status != KMOD_CTRL) {
         switch (unicode) {
         case 'd':
             if (tty->fjob)
@@ -601,10 +603,10 @@ void terminal_key(termio_t *tty, uchar_t unicode, int status)
             terminal_copy(tty, __clipboard_buffer, __clipboard_size);
             int len = strlen(__clipboard_buffer);
             if (len > 0)
-                clipboard_copy(__clipboard_buffer, len + 1);
+                gfx_clipboard_copy(__clipboard_buffer, len + 1);
             break;
         case 'v':
-            i = clipboard_paste(__clipboard_buffer, __clipboard_size);
+            i = gfx_clipboard_paste(__clipboard_buffer, __clipboard_size);
             if (i > 0)
                 terminal_paste(tty, __clipboard_buffer, i);
             break;

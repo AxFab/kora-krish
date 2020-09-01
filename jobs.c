@@ -74,6 +74,9 @@ job_t *job_create(termio_t *tty, const char *name)
     job->tty = tty;
     job->name = strdup(name);
     job->flags = JB_FGSTACK | JB_TTYOUT;
+    job->fstd[0] = -1;
+    job->fstd[1] = -1;
+    job->fstd[2] = -1;
     return job;
 }
 

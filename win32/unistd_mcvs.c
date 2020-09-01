@@ -37,6 +37,7 @@ int __exec(char *name, const char **argv, const char **env, int fds[3])
     char cmdline[4096];
 
     int argc = 0;
+    // TODO -- on PATH !?
     strncpy(cmdline, name, 4096);
     for (i = 0; i < argc; ++i) {
         strncat(cmdline, " ", 4096);
@@ -92,6 +93,10 @@ int __exec(char *name, const char **argv, const char **env, int fds[3])
 
     fds[0] = _open_osfhandle(hInWr, _O_WRONLY);
     fds[1] = _open_osfhandle(hOutRd, _O_RDONLY);
+    if (fds[0] == 0)
+        fds[0] = -1;
+    if (fds[1] == 0)
+        fds[1] = -1;
     fds[2] = fds[1];
 
     CloseHandle(piProcInfo.hProcess);

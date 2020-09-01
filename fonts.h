@@ -1,7 +1,7 @@
 #ifndef _FONTS_H
 #define _FONTS_H 1
 
-#include <kora/gfx.h>
+#include <gfx.h>
 
 typedef struct font_bmp font_bmp_t;
 
