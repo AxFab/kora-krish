@@ -17,38 +17,39 @@
 topdir ?= $(shell readlink -f $(dir $(word 1,$(MAKEFILE_LIST))))
 gendir ?= $(shell pwd)
 
+PACKAGE=krish
 include $(topdir)/make/global.mk
-
-all: krish
-
-DISTO ?= kora
-
 include $(topdir)/make/build.mk
 
+
+disto ?= kora
+
+
+
 SRCS-y += $(wildcard $(srcdir)/*.c)
-SRCS-y += $(wildcard $(srcdir)/$(DISTO)/*.c)
+SRCS-y += $(wildcard $(srcdir)/$(disto)/*.c)
 
 CFLAGS ?= -Wall -Wextra -ggdb
-CFLAGS += -I $(topdir)/$(DISTO) -D_GNU_SOURCE
+CFLAGS += -I $(topdir)/$(disto) $(shell $(PKC) --cflags lgfx)
 
-LFLAGS += -L $(libdir) -lgfx
+LFLAGS += $(shell $(PKC) --libs lgfx)
 
-ifneq ($(LGFX_HOME),)
-LFLAGS += -L $(LGFX_HOME)/lib
-CFLAGS += -I $(LGFX_HOME)/include
-endif
 
-ifeq ($(DISTO),linux)
-LFLAGS += -lpthread
-else ifeq ($(DISTO),kora)
-CFLAGS += -Dmain=_main
+ifeq ($(disto),linux)
+CFLAGS += $(shell $(PKC) --cflags pthread)
+LFLAGS += $(shell $(PKC) --libs pthread)
+else ifeq ($(disto),kora)
+CFLAGS += -Dmain=_main -D_GNU_SOURCE
 endif
 
 $(eval $(call link_bin,krish,SRCS,LFLAGS))
 
-include $(topdir)/make/check.mk
 
-install: $(call fn_inst,$(BINS) $(LIBS))
+
+include $(topdir)/make/check.mk
+include $(topdir)/make/targets.mk
+
+install-headers:
 
 ifeq ($(NODEPS),)
 -include $(call fn_deps,SRCS-y)

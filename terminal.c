@@ -54,7 +54,7 @@ struct termio {
     bool *invals;
     term_buffer_t buf_lines;
     term_buffer_t buf_input;
-	mtx_t mtx;
+    mtx_t mtx;
     job_t *fjob;
     void(*readline)(termio_t *, const char *);
 
@@ -802,7 +802,7 @@ int terminal_paste(termio_t *tty, const char *buf, int len)
 
 
 
-void gfx_glyph(gfx_t* gfx, const font_bmp_t* font, uint32_t unicode, uint32_t fg, uint32_t bg, int x, int y)
+void gfx_glyph(gfx_t *gfx, const font_bmp_t *font, uint32_t unicode, uint32_t fg, uint32_t bg, int x, int y)
 {
     int l, px, ph;
     int py = y;
@@ -810,7 +810,7 @@ void gfx_glyph(gfx_t* gfx, const font_bmp_t* font, uint32_t unicode, uint32_t fg
     int sx = MIN(gfx->width, x + font->dispx);
     int gy = MIN(gfx->height, y + font->height);
     int sy = MIN(gfx->height, y + font->dispy);
-    const uint8_t* glyph = &font->glyphs[(unicode - 0x20) * font->glyph_size];
+    const uint8_t *glyph = &font->glyphs[(unicode - 0x20) * font->glyph_size];
     for (l = 0; py < gy; ++py) {
         ph = py * gfx->width;
         for (px = x; px < gx; ++px, ++l)

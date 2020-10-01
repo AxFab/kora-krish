@@ -84,8 +84,8 @@ void job_destroy(job_t *job)
 {
     if (job->fstd[0] >= 0)
         close(job->fstd[0]);
-	if (job->fstd[1] >= 0)
-		close(job->fstd[1]);
+    if (job->fstd[1] >= 0)
+        close(job->fstd[1]);
     if (job->fstd[1] != job->fstd[2])
         close(job->fstd[2]);
     free(job->name);
