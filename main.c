@@ -147,8 +147,8 @@ int main(int argc, char const *argv[])
 #ifndef main
     gfx_t *win = gfx_create_window(NULL, _16x10(480), 480, 0);
 #else
-    int fb0 = open("/fb0", O_RDWR);
-    int kdb = open("/kdb", O_RDONLY);
+    int fb0 = open("/dev/fb0", O_RDWR);
+    int kdb = open("/dev/kdb", O_RDONLY);
     gfx_t *win = gfx_opend(fb0, kdb);
 #endif
     terminal_resize(tty, win);

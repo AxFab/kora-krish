@@ -26,8 +26,8 @@ disto ?= kora
 
 
 
-SRCS-y += $(wildcard $(srcdir)/*.c)
-SRCS-y += $(wildcard $(srcdir)/$(disto)/*.c)
+SRCS += $(wildcard $(srcdir)/*.c)
+SRCS += $(wildcard $(srcdir)/$(disto)/*.c)
 
 CFLAGS ?= -Wall -Wextra -ggdb
 CFLAGS += -I $(topdir)/$(disto) $(shell $(PKC) --cflags lgfx)
@@ -52,5 +52,5 @@ include $(topdir)/make/targets.mk
 install-headers:
 
 ifeq ($(NODEPS),)
--include $(call fn_deps,SRCS-y)
+-include $(call fn_deps,SRCS)
 endif
