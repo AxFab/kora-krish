@@ -35,10 +35,16 @@ struct shell_cmd {
 
 
 #define SH_BACKGROUND (1 << 0)
-#define SH_ERROR (1 << 1)
 
-#define SH_TRUNCAT_OUT (1 << 3)
-#define SH_TRUNCAT_ERR (1 << 4)
+#define SH_REDIRECT_IN (1 << 1)
+#define SH_REDIRECT_OUT (1 << 2)
+#define SH_REDIRECT_ERR (1 << 3)
+
+#define SH_TRUNCAT_IN (1 << 4)
+#define SH_TRUNCAT_OUT (1 << 5)
+#define SH_TRUNCAT_ERR (1 << 6)
+
+#define SH_ERROR (1 << 7)
 
 
 /* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= */

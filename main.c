@@ -19,8 +19,8 @@ void shell_prompt(termio_t *tty)
     char host[215];
     char user[215];
     getcwd(pwd, 215);
-    strcpy(host, "NUC");
-    strcpy(user, "Fab");
+    strcpy(host, "dev-vm");
+    strcpy(user, "admin");
     for (i = 0; pwd[i]; ++i) {
         if (pwd[i] == '\\')
             pwd[i] = '/';
@@ -91,24 +91,24 @@ void on_resize(gfx_t *gfx, termio_t *tty)
 //}
 
 
-void on_mse_up(gfx_t *gfx, termio_t *tty, gfx_seat_t *seat, int btn)
+void on_mse_up(gfx_t *gfx, termio_t *tty, int btn)
 {
     int w, h;
     terminal_font_size(tty, &w, &h);
     if (btn == 1) {
-        rx = seat->mouse_x / w;
-        ry = seat->mouse_y / h;
+        rx = gfx->seat->mouse_x / w;
+        ry = gfx->seat->mouse_y / h;
         terminal_select(tty, ly, lx, ry, rx);
     }
 }
 
-void on_mse_down(gfx_t *gfx, termio_t *tty, gfx_seat_t *seat, int btn)
+void on_mse_down(gfx_t *gfx, termio_t *tty, int btn)
 {
     if (btn == 1) {
         int w, h;
         terminal_font_size(tty, &w, &h);
-        lx = rx = seat->mouse_x / w;
-        ly = ry = seat->mouse_y / h;
+        lx = rx = gfx->seat->mouse_x / w;
+        ly = ry = gfx->seat->mouse_y / h;
     } else if (btn == 2) {
 
     } else if (btn == 3) {
@@ -119,18 +119,18 @@ void on_mse_down(gfx_t *gfx, termio_t *tty, gfx_seat_t *seat, int btn)
     }
 }
 
-void on_mse_move(gfx_t *gfx, termio_t *tty, gfx_seat_t *seat)
+void on_mse_move(gfx_t *gfx, termio_t *tty)
 {
-    if (seat->btn_status & 1) {
+    if (gfx->seat->btn_status & 1) {
         int w, h;
         terminal_font_size(tty, &w, &h);
-        rx = seat->mouse_x / w;
-        ry = seat->mouse_y / h;
+        rx = gfx->seat->mouse_x / w;
+        ry = gfx->seat->mouse_y / h;
         terminal_select(tty, ly, lx, ry, rx);
     }
 }
 
-void on_mse_wheel(gfx_t *gfx, termio_t *tty, gfx_seat_t *seat, int disp)
+void on_mse_wheel(gfx_t *gfx, termio_t *tty, int disp)
 {
     terminal_scroll(tty, disp);
 }
@@ -147,37 +147,34 @@ int main(int argc, char const *argv[])
 #ifndef main
     gfx_t *win = gfx_create_window(NULL, _16x10(480), 480, 0);
 #else
-    int fb0 = open("/dev/fb0", O_RDWR);
-    int kdb = open("/dev/kdb", O_RDONLY);
-    gfx_t *win = gfx_opend(fb0, kdb);
+    gfx_t* win = gfx_open_surface("/dev/fb0");
+    // gfx_open_input("/dev/kbd");
 #endif
+
     terminal_resize(tty, win);
 
     gfx_map(win);
     terminal_puts(tty, "  Welcome on \033[96mKrish\033[0m, \033[90;43mv0.1.3\033[0m\n");
     shell_prompt(tty);
-
+    gfx_timer(20, 20);
     gfx_msg_t msg;
-    gfx_seat_t seat;
-    memset(&seat, 0, sizeof(seat));
-    gfx_keyboard_load(&seat);
     for (;;) {
-        gfx_poll(win, &msg);
-        gfx_handle(win, &msg, &seat);
+        gfx_poll(&msg);
+        gfx_handle(&msg);
         if (msg.message == GFX_EV_QUIT)
             break;
         switch (msg.message) {
         case GFX_EV_MOUSEMOVE:
-            on_mse_move(win, tty, &seat);
+            on_mse_move(win, tty);
             break;
         case GFX_EV_BTNUP:
-            on_mse_up(win, tty, &seat, msg.param1);
+            on_mse_up(win, tty, msg.param1);
             break;
         case GFX_EV_BTNDOWN:
-            on_mse_down(win, tty, &seat, msg.param1);
+            on_mse_down(win, tty, msg.param1);
             break;
         case GFX_EV_KEYPRESS:
-            terminal_key(tty, msg.param1, seat.kdb_status);
+            terminal_key(tty, msg.param1, msg.gfx->seat->kdb_status);
             break;
         case GFX_EV_MOUSEWHEEL:
             terminal_scroll(tty, (int)msg.param1);
@@ -185,9 +182,11 @@ int main(int argc, char const *argv[])
         case GFX_EV_RESIZE:
             terminal_resize(tty, win);
             break;
-        case GFX_EV_PAINT:
-            terminal_paint(tty);
-            gfx_flip(win);
+        case GFX_EV_TIMER:
+            if (terminal_redraw(tty)) {
+                terminal_paint(tty);
+                gfx_flip(win);
+            }
             break;
         }
 

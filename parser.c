@@ -96,10 +96,10 @@ static int Parse_command(char *token)
             lexer_state = LX_ST_STDIN;
         else if (strcmp(token, ">") == 0) {
             lexer_state = LX_ST_STDOUT;
-            Shell_cmd()->flags_ |= SH_TRUNCAT_OUT;
+            Shell_cmd()->flags_ |= SH_REDIRECT_OUT | SH_TRUNCAT_OUT;
         } else if (strcmp(token, ">>") == 0) {
             lexer_state = LX_ST_STDOUT;
-            Shell_cmd()->flags_ &= ~SH_TRUNCAT_OUT;
+            Shell_cmd()->flags_ |= SH_REDIRECT_OUT | SH_TRUNCAT_OUT;
         } else if (strcmp(token, "&") == 0) {
             lexer_state = LX_ST_COMMAND_NEXT;
             Shell_cmd()->flags_ |= SH_BACKGROUND;

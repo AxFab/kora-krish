@@ -1,12 +1,12 @@
 #include "krish.h"
 #include <gfx.h>
 #include <threads.h>
-#include <kora/mcrs.h>
-#include <kora/llist.h>
+#include "mcrs.h"
+#include "llist.h"
 #include <keycodes.h>
 #include <assert.h>
 #include <stdio.h>
-#include "fonts.h"
+// #include "fonts.h"
 
 
 #define _sR(v)  (((v) & 0xFF) << 16)
@@ -59,9 +59,13 @@ struct termio {
     void(*readline)(termio_t *, const char *);
 
     gfx_t *win;
-    const font_bmp_t *font;
+    const gfx_font_t *font;
     int cols, rows;
     bool invalid;
+
+    int char_w;
+    int char_h;
+    int char_b;
 };
 
 /* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= */
@@ -104,7 +108,7 @@ termio_t *terminal_create(void(*readline)(termio_t *, const char *))
     tty->readline = readline;
     tty->start_row = -1;
     tty->end_row = -1;
-    tty->font = gfx_fetch_font(2);
+    tty->font = gfx_font("Courier New", 13, 0);
 
     tty->colors[0] = 0x101010;
     tty->colors[1] = 0xa61010;
@@ -151,8 +155,13 @@ void terminal_destroy(termio_t *tty)
 
 void terminal_font_size(termio_t *tty, int *w, int *h)
 {
-    *w = tty->font->dispx;
-    *h = tty->font->dispy;
+    gfx_text_metrics_t m;
+    gfx_mesure_text(tty->font, "W", &m);
+    *w = m.width; // tty->font->dispx;
+    *h = (int)(m.height * 1.15); // tty->font->dispy;
+    tty->char_w = m.width;
+    tty->char_h = (int)(m.height * 1.25);
+    tty->char_b = m.baseline + (int)(m.height * 0.35);
 }
 
 void terminal_cell(termio_t *tty, term_buffer_t *buffer)
@@ -186,8 +195,6 @@ void terminal_inval_rows(termio_t *tty, int from, int to)
     for (; from <= to; ++from)
         tty->invals[from] = true;
     tty->invalid = true;
-    if (tty->win)
-        gfx_invalid(tty->win);
 }
 
 void terminal_ansi_graphics(termio_t *tty, term_cell_t *cell, int *values, int sp)
@@ -427,19 +434,19 @@ static int terminal_cell_selected(termio_t *tty, int idx, term_cell_t *cell)
 void display_cell(termio_t *tty, int row, int col, const char *text, int len, uint32_t fg, uint32_t bg)
 {
     gfx_t *gfx = tty->win;
-    const font_bmp_t *font = tty->font;
+    const gfx_font_t *font = tty->font;
     int i, s = 0;
     for (i = 0; i < len; ++i) {
-        if ((col + i - s) * font->dispx > gfx->width)
+        if ((col + i - s) * tty->char_w > gfx->width)
             break;
         if (text[i] >= 0x20)
-            gfx_glyph(gfx, font, text[i], fg, bg, (col + i - s) * font->dispx, row * font->dispy);
+            gfx_glyph(gfx, font, text[i], fg, bg, (col + i - s) * tty->char_w, row * tty->char_h + tty->char_b, NULL);
         else if (text[i] < 0) {
             wchar_t unicode;
             int ln = mbtowc(&unicode, &text[i], len);
             if (ln < 1)
                 continue;
-            gfx_glyph(gfx, font, 0x7F, fg, bg, (col + i - s) * font->dispx, row * font->dispy);
+            gfx_glyph(gfx, font, 0x7F, fg, bg, (col + i - s) * tty->char_w, row * tty->char_h + tty->char_b, NULL);
             s += ln - 1;
             i += ln - 1;
         }
@@ -547,8 +554,8 @@ void terminal_paint(termio_t *tty)
         gfx_clip_t rline;
         rline.left = 0;
         rline.right = tty->win->width;
-        rline.top = i * tty->font->dispy;
-        rline.bottom = rline.top + tty->font->dispy;
+        rline.top = i * tty->char_h;
+        rline.bottom = rline.top + tty->char_h;
         if (buffer->lines[idx].row != row) {
             if (!tty->resize && tty->invals[i])
                 gfx_fill(tty->win, tty->colors[0], GFX_NOBLEND, &rline);
@@ -718,9 +725,12 @@ void terminal_resize(termio_t *tty, gfx_t *win)
 {
     mtx_lock(&tty->mtx);
     tty->win = win;
+    tty->font = gfx_font("arial", 12, 0);
     if (tty->font != NULL) {
-        tty->rows = win->height / tty->font->dispy;
-        tty->cols = win->width / tty->font->dispx;
+        int cw, ch;
+        terminal_font_size(tty, &cw, &ch);
+        tty->rows = win->height / ch;
+        tty->cols = win->width / cw;
     }
     terminal_inval_all(tty);
     mtx_unlock(&tty->mtx);
@@ -733,8 +743,6 @@ void terminal_inval_all(termio_t *tty)
         free(tty->invals);
     tty->invals = NULL;
     tty->invalid = true;
-    if (tty->win)
-        gfx_invalid(tty->win);
 }
 
 int terminal_copy(termio_t *tty, char *buf, int lg)
@@ -799,31 +807,4 @@ int terminal_paste(termio_t *tty, const char *buf, int len)
     return 0;
 }
 
-
-
-
-void gfx_glyph(gfx_t *gfx, const font_bmp_t *font, uint32_t unicode, uint32_t fg, uint32_t bg, int x, int y)
-{
-    int l, px, ph;
-    int py = y;
-    int gx = MIN(gfx->width, x + font->width);
-    int sx = MIN(gfx->width, x + font->dispx);
-    int gy = MIN(gfx->height, y + font->height);
-    int sy = MIN(gfx->height, y + font->dispy);
-    const uint8_t *glyph = &font->glyphs[(unicode - 0x20) * font->glyph_size];
-    for (l = 0; py < gy; ++py) {
-        ph = py * gfx->width;
-        for (px = x; px < gx; ++px, ++l)
-            gfx->pixels4[ph + px] = (glyph[l / 8] & (1 << l % 8)) ? fg : bg;
-        for (; px < sx; ++px)
-            gfx->pixels4[ph + px] = bg;
-        // TODO -- l is late if gx < x + font->width
-    }
-
-    for (; py < sy; ++py) {
-        ph = py * gfx->width;
-        for (px = x; px < sx; ++px)
-            gfx->pixels4[ph + px] = bg;
-    }
-}
 

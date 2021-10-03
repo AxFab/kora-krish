@@ -434,7 +434,7 @@ const font_bmp_t font_8x8 = {
 
 /* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= */
 
-font_bmp_t *fonts[] = {
+const font_bmp_t *fonts[] = {
     &font_6x10,
     &font_8x15,
     &font_7x13,
@@ -442,7 +442,7 @@ font_bmp_t *fonts[] = {
     &font_8x8,
 };
 
-font_bmp_t *gfx_fetch_font(int idx)
+const font_bmp_t *gfx_fetch_font(int idx)
 {
     return fonts[idx % 5];
 }

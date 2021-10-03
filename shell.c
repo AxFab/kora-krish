@@ -40,10 +40,10 @@ static void Shell_stash_show(struct shell_cmd *cmd, char *msg)
 {
     // if (cmd == NULL)
     //     cmd = Shell_cmd();
-    // printf("   %-20s '%s'(%d) <%d, %d, %d> {%2o}\n",
-    //        msg, cmd->name_, cmd->argc_,
-    //        cmd->in_, cmd->out_, cmd->err_,
-    //        cmd->flags_);
+     printf("   %-20s '%s'(%d) <%d, %d, %d> {%2o}\n",
+            msg, cmd->name_, cmd->argc_,
+            cmd->in_, cmd->out_, cmd->err_,
+            cmd->flags_);
 }
 
 int Shell_fifo()
@@ -120,6 +120,10 @@ void Shell_exec(struct shell_cmd *cmd)
 
     job_t *job = job_create(__tty, cmd->name_);
     job_args(job, cmd->argc_, cmd->argv_);
+    // Redirect job
+    if (cmd->flags_ & SH_TRUNCAT_OUT) {
+        // REDIRECT OUTPUT
+    }
     job_start(job);
 }
 

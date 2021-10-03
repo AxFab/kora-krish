@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "krish.h"
-#include <kora/llist.h>
-#include <kora/bbtree.h>
+#include "llist.h"
+#include "bbtree.h"
 #include <threads.h>
 #include <unistd.h>
 
@@ -133,6 +133,7 @@ void job_run(job_t *job)
 void job_start(job_t *job)
 {
     char buf[64];
+    printf(" - %s [%d, %d, %d]\n", job->name, job->fstd[0], job->fstd[1], job->fstd[2]);
     int pid = __exec(job->name, job->argv, NULL, job->fstd);
     if (pid < 0) {
         // TODO Know why?
