@@ -1,6 +1,6 @@
 /*
  *      This file is part of the KoraOS project.
- *  Copyright (C) 2015-2018  <Fabien Bavent>
+ *  Copyright (C) 2015-2021  <Fabien Bavent>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Affero General Public License as
@@ -40,10 +40,10 @@ static void Shell_stash_show(struct shell_cmd *cmd, char *msg)
 {
     // if (cmd == NULL)
     //     cmd = Shell_cmd();
-     printf("   %-20s '%s'(%d) <%d, %d, %d> {%2o}\n",
-            msg, cmd->name_, cmd->argc_,
-            cmd->in_, cmd->out_, cmd->err_,
-            cmd->flags_);
+    printf("   %-20s '%s'(%d) <%d, %d, %d> {%2o}\n",
+           msg, cmd->name_, cmd->argc_,
+           cmd->in_, cmd->out_, cmd->err_,
+           cmd->flags_);
 }
 
 int Shell_fifo()
@@ -166,4 +166,3 @@ void Shell_stack_arg(char *token)
             Shell_cmd()->argv_[Shell_cmd()->argc_] = NULL;
     }
 }
-

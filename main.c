@@ -1,3 +1,22 @@
+/*
+ *      This file is part of the KoraOS project.
+ *  Copyright (C) 2015-2021  <Fabien Bavent>
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Affero General Public License as
+ *  published by the Free Software Foundation, either version 3 of the
+ *  License, or (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Affero General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Affero General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *   - - - - - - - - - - - - - - -
+ */
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -145,9 +164,9 @@ int main(int argc, char const *argv[])
     termio_t *tty = terminal_create(on_readline);
     __tty = tty;
 #ifndef main
-    gfx_t *win = gfx_create_window(NULL, _16x10(480), 480, 0);
+    gfx_t *win = gfx_create_window(_16x10(480), 480);
 #else
-    gfx_t* win = gfx_open_surface("/dev/fb0");
+    gfx_t *win = gfx_open_surface("/dev/fb0");
     // gfx_open_input("/dev/kbd");
 #endif
 
@@ -185,7 +204,7 @@ int main(int argc, char const *argv[])
         case GFX_EV_TIMER:
             if (terminal_redraw(tty)) {
                 terminal_paint(tty);
-                gfx_flip(win);
+                gfx_flip(win, NULL);
             }
             break;
         }

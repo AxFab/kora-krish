@@ -1,5 +1,5 @@
-#      This file is part of the SmokeOS project.
-#  Copyright (C) 2015  <Fabien Bavent>
+#      This file is part of the KoraOS project.
+#  Copyright (C) 2015-2021  <Fabien Bavent>
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU Affero General Public License as
@@ -17,40 +17,46 @@
 topdir ?= $(shell readlink -f $(dir $(word 1,$(MAKEFILE_LIST))))
 gendir ?= $(shell pwd)
 
-PACKAGE=krish
 include $(topdir)/make/global.mk
-include $(topdir)/make/build.mk
 
+all: krish
+
+install: $(prefix)/bin/krish
+
+include $(topdir)/make/build.mk
+include $(topdir)/make/check.mk
+include $(topdir)/make/targets.mk
+
+CFLAGS ?= -Wall -Wextra -ggdb
+
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 disto ?= kora
 
+SRCS_sh += $(wildcard $(srcdir)/*.c)
+SRCS_sh += $(wildcard $(srcdir)/$(disto)/*.c)
 
+CFLAGS_sh += $(CFLAGS)
+CFLAGS_sh += -I$(topdir)/$(disto)
 
-SRCS += $(wildcard $(srcdir)/*.c)
-SRCS += $(wildcard $(srcdir)/$(disto)/*.c)
+ifneq ($(sysdir),)
+CFLAGS_sh += -I$(sysdir)/include
+LFLAGS_sh += -L$(sysdir)/lib
+endif
 
-CFLAGS ?= -Wall -Wextra -ggdb
-CFLAGS += -I $(topdir)/$(disto) $(shell $(PKC) --cflags lgfx)
-
-LFLAGS += $(shell $(PKC) --libs lgfx)
+LFLAGS_sh += -lgfx -lpng -lz -lm
 
 
 ifeq ($(disto),linux)
 CFLAGS += $(shell $(PKC) --cflags pthread)
 LFLAGS += $(shell $(PKC) --libs pthread)
-else ifeq ($(disto),kora)
-CFLAGS += -Dmain=_main -D_GNU_SOURCE
 endif
 
-$(eval $(call link_bin,krish,SRCS,LFLAGS))
+$(eval $(call comp_source,sh,CFLAGS_sh))
+$(eval $(call link_bin,krish,SRCS_sh,LFLAGS_sh,sh))
 
-
-
-include $(topdir)/make/check.mk
-include $(topdir)/make/targets.mk
-
-install-headers:
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 ifeq ($(NODEPS),)
--include $(call fn_deps,SRCS)
+-include $(call fn_deps,SRCS_sh,sh)
 endif
