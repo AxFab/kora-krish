@@ -35,8 +35,6 @@ static inline void *itemof_(void *ptr, int off)
 }
 #endif
 
-extern bbnode_t _NIL;
-#define __NIL (&_NIL)
 
 /* BBTree (self-balancing binary tree) head */
 struct bbtree {
@@ -53,16 +51,7 @@ struct bbnode {
     int level_;
 };
 
-#define INIT_BBTREE     {__NIL,0}
-#define INIT_BBNODE(n)  {NULL,NULL,NULL,n,0}
-
-
-static inline void bbtree_init(bbtree_t *tree)
-{
-    tree->root_ = __NIL;
-    tree->count_ = 0;
-}
-
+void bbtree_init(bbtree_t *tree);
 int bbtree_check(bbnode_t *node);
 int bbtree_insert(bbtree_t *tree, bbnode_t *node);
 int bbtree_remove(bbtree_t *tree, size_t value);

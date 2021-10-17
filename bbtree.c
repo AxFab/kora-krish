@@ -33,6 +33,12 @@ bbnode_t _NIL = {
     &_NIL, &_NIL, &_NIL, 0, 0
 };
 
+void bbtree_init(bbtree_t *tree)
+{
+    tree->root_ = __NIL;
+    tree->count_ = 0;
+}
+
 /* Swap the pointers of horizontal left links.
 *         |             |
 *    L <- T             L -> T

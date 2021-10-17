@@ -32,8 +32,8 @@
 #define _PwNano_ (1000LL * _PwMicro_)
 #define _PwFemto_ (1000LL * _PwNano_)
 
-#define ALIGN_UP(v,a)      (((v)+(a-1))&(~(a-1)))
-#define ALIGN_DW(v,a)      ((v)&(~(a-1)))
+#define ALIGN_UP(v,a)      (((v)+((a)-1))&(~((a)-1)))
+#define ALIGN_DW(v,a)      ((v)&(~((a)-1)))
 #define IS_ALIGNED(v,a)      (((v)&((a)-1))==0)
 
 #define ADDR_OFF(a,o)  ((void*)(((char*)a)+(o)))
@@ -41,9 +41,17 @@
 
 #define MIN(a,b)    ((a)<=(b)?(a):(b))
 #define MAX(a,b)    ((a)>=(b)?(a):(b))
-#define MIN3(a,b,c)    MIN(a,MIN(b,c))
-#define MAX3(a,b,c)    MAX(a,MAX(b,c))
+#define MIN3(a,b,c) MIN(a,MIN(b,c))
+#define MAX3(a,b,c) MAX(a,MAX(b,c))
 #define POW2(v)     ((v) != 0 && ((v) & ((v)-1)) == 0)
+#define BIT(s)      (1<<(s))
+
+#define MIN_TO_USEC(s)  ((s)*60000000LL)
+#define SEC_TO_USEC(s)  ((s)*1000000LL)
+#define MSEC_TO_USEC(s)  ((s)*1000LL)
+#define TMSPEC_TO_USEC(t)  ((t).tv_sec*1000000LL+(t).tv_nsec/1000L)
+#define USEC_TO_SEC(s)  ((s)/1000000LL)
+#define NSEC_OF_USEC(s)  (((s) % 1000000LL) * 1000)
 
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
