@@ -744,7 +744,7 @@ void terminal_resize(termio_t *tty, gfx_t *win)
 {
     mtx_lock(&tty->mtx);
     tty->win = win;
-    tty->font = gfx_font("arial", 12, 0);
+    tty->font = gfx_font(NULL, 12, 0);
     if (tty->font != NULL) {
         int cw, ch;
         terminal_font_size(tty, &cw, &ch);

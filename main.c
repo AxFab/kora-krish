@@ -163,12 +163,10 @@ int main(int argc, char const *argv[])
     job_init();
     termio_t *tty = terminal_create(on_readline);
     __tty = tty;
-#ifndef main
+    gfx_context("win32");
     gfx_t *win = gfx_create_window(_16x10(480), 480);
-#else
-    gfx_t *win = gfx_open_surface("/dev/fb0");
+    // gfx_t *win = gfx_open_surface("/dev/fb0");
     // gfx_open_input("/dev/kbd");
-#endif
 
     terminal_resize(tty, win);
 
