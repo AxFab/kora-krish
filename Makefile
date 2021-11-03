@@ -42,9 +42,10 @@ CFLAGS_sh += -I$(topdir)/$(disto)
 ifneq ($(sysdir),)
 CFLAGS_sh += -I$(sysdir)/include
 LFLAGS_sh += -L$(sysdir)/lib
+LFLAGS_sh += -Wl,-rpath-link,$(sysdir)/lib
 endif
 
-LFLAGS_sh += -lgfx -lpng -lz -lm
+LFLAGS_sh += -lgfx
 
 
 ifeq ($(disto),linux)
