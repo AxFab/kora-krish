@@ -49,8 +49,7 @@ LFLAGS_sh += -lgfx
 
 
 ifeq ($(disto),linux)
-CFLAGS += $(shell $(PKC) --cflags pthread)
-LFLAGS += $(shell $(PKC) --libs pthread)
+LFLAGS_sh += -lpthread
 endif
 
 $(eval $(call comp_source,sh,CFLAGS_sh))

@@ -27,6 +27,8 @@
 #include <stdio.h>
 // #include "fonts.h"
 
+// #define FONT_NAME "Consolas"
+#define FONT_NAME NULL
 
 #define _sR(v)  (((v) & 0xFF) << 16)
 #define _sG(v)  (((v) & 0xFF) << 8)
@@ -127,7 +129,7 @@ termio_t *terminal_create(void(*readline)(termio_t *, const char *))
     tty->readline = readline;
     tty->start_row = -1;
     tty->end_row = -1;
-    tty->font = gfx_font("Courier New", 13, 0);
+    tty->font = gfx_font(FONT_NAME, 13, 0);
 
     tty->colors[0] = 0x101010;
     tty->colors[1] = 0xa61010;
@@ -744,7 +746,7 @@ void terminal_resize(termio_t *tty, gfx_t *win)
 {
     mtx_lock(&tty->mtx);
     tty->win = win;
-    tty->font = gfx_font(NULL, 12, 0);
+    tty->font = gfx_font(FONT_NAME, 12, 0);
     if (tty->font != NULL) {
         int cw, ch;
         terminal_font_size(tty, &cw, &ch);
