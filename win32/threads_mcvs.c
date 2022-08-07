@@ -57,9 +57,9 @@ static unsigned __stdcall impl_thrd_routine(void *p)
     return (unsigned)code;
 }
 
-static DWORD impl_xtime2msec(const xtime *xt)
+static DWORD impl_xtime2msec(const struct timespec *xt)
 {
-    return (DWORD)((xt->sec * 1000u) + (xt->nsec / 1000000));
+    return (DWORD)((xt->tv_sec * 1000u) + (xt->tv_nsec / 1000000));
 }
 
 #ifdef EMULATED_THREADS_USE_NATIVE_CALL_ONCE
@@ -120,7 +120,7 @@ static void impl_cond_do_signal(cnd_t *cond, int broadcast)
         ReleaseSemaphore(cond->sem_queue, nsignal, NULL);
 }
 
-static int impl_cond_do_wait(cnd_t *cond, mtx_t *mtx, const xtime *xt)
+static int impl_cond_do_wait(cnd_t *cond, mtx_t *mtx, const struct timespec *xt)
 {
     int nleft = 0;
     int ngone = 0;
@@ -286,7 +286,7 @@ int cnd_signal(cnd_t *cond)
 }
 
 // 7.25.3.5
-int cnd_timedwait(cnd_t *cond, mtx_t *mtx, const xtime *xt)
+int cnd_timedwait(cnd_t *cond, mtx_t *mtx, const struct timespec *xt)
 {
     if (!cond || !mtx || !xt)
         return thrd_error;
@@ -345,13 +345,13 @@ int mtx_lock(mtx_t *mtx)
 }
 
 // 7.25.4.4
-int mtx_timedlock(mtx_t *mtx, const xtime *xt)
+int mtx_timedlock(mtx_t *mtx, const struct timespec *xt)
 {
     time_t expire;
     if (!mtx || !xt)
         return thrd_error;
     expire = time(NULL);
-    expire += xt->sec;
+    expire += xt->tv_sec;
     while (mtx_trylock(mtx) != thrd_success) {
         time_t now = time(NULL);
         if (expire < now)
@@ -448,10 +448,12 @@ int thrd_join(thrd_t thr, int *res)
 }
 
 // 7.25.5.7
-void thrd_sleep(const xtime *xt)
+void thrd_sleep(const struct timespec *xt, struct timespec *rem)
 {
     assert(xt);
     Sleep(impl_xtime2msec(xt));
+    if (rem)
+        rem->tv_sec = rem->tv_nsec = 0;
 }
 
 // 7.25.5.8
@@ -498,13 +500,13 @@ int tss_set(tss_t key, void *val)
 
 /*-------------------- 7.25.7 Time functions --------------------*/
 // 7.25.6.1
-int xtime_get(xtime *xt, int base)
+int xtime_get(struct timespec *xt, int base)
 {
     if (!xt)
         return 0;
     if (base == TIME_UTC) {
-        xt->sec = time(NULL);
-        xt->nsec = 0;
+        xt->tv_sec = time(NULL);
+        xt->tv_nsec = 0;
         return base;
     }
     return 0;

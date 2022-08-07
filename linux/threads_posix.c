@@ -87,7 +87,7 @@ int cnd_signal(cnd_t *cond)
 }
 
 // 7.25.3.5
-int cnd_timedwait(cnd_t *cond, mtx_t *mtx, const xtime *xt)
+int cnd_timedwait(cnd_t *cond, mtx_t *mtx, const struct timespec *xt)
 {
     struct timespec abs_time;
     int rt;
@@ -151,7 +151,7 @@ int mtx_lock(mtx_t *mtx)
 }
 
 // 7.25.4.4
-int mtx_timedlock(mtx_t *mtx, const xtime *xt)
+int mtx_timedlock(mtx_t *mtx, const struct timespec *xt)
 {
     if (!mtx || !xt)
         return thrd_error;
@@ -253,7 +253,7 @@ int thrd_join(thrd_t thr, int *res)
 }
 
 // 7.25.5.7
-void thrd_sleep(const xtime *xt)
+void thrd_sleep(const struct timespec *xt)
 {
     struct timespec req;
     assert(xt);
@@ -299,7 +299,7 @@ int tss_set(tss_t key, void *val)
 
 /*-------------------- 7.25.7 Time functions --------------------*/
 // 7.25.6.1
-int xtime_get(xtime *xt, int base)
+int xtime_get(struct timespec *xt, int base)
 {
     if (!xt)
         return 0;
